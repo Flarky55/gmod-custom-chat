@@ -707,10 +707,10 @@ hook.Add( "InitPostEntity", "CustomChat.PostInit", function()
     end
 
     hook.Add( "OnPlayerChat", "CustomChat.PreprocessPlayerChat", function( ply, text, isTeam, isDead )
-        -- Make sure the `lastReceivedMessage` table exists when
-        -- the `OnPlayerChat` hook runs due to the "say" console command.
-
         if CustomChat.USE_TAGS then
+            -- Make sure the `lastReceivedMessage` table exists when this hook runs.
+            -- It could be nil if the message comes from the "say" console command
+            -- instead of the "customchat.say" network event.
             CustomChat.lastReceivedMessage = CustomChat.lastReceivedMessage or {
                 speaker = ply,
                 text = text,
