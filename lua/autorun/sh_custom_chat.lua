@@ -79,9 +79,6 @@ CreateConVar( "custom_chat_always_allow_embeds", "0", bit.bor( FCVAR_ARCHIVE, FC
 CreateConVar( "custom_chat_print_chats", "1", bit.bor( FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_NOTIFY ),
     "Print chat messages to the server console.", 0, 1 )
 
-CreateConVar( "custom_chat_debug_serverlog", "0", bit.bor( FCVAR_ARCHIVE, FCVAR_REPLICATED, FCVAR_NOTIFY ),
-    "Use ServerLog to print messages on serverside, may fix messages not appearing when hosting through some server panels.", 0, 2 )
-
 if CLIENT then
     CreateClientConVar( "custom_chat_enable", "1", true, false )
 
@@ -89,12 +86,21 @@ if CLIENT then
         "Should the SteamID be visible when showing join/leave messages?", 0, 1 )
 end
 
+if SERVER then
+    CreateConVar( "custom_chat_server_log_method", "0", bit.bor( FCVAR_ARCHIVE, FCVAR_NOTIFY ),
+        "Set the logging method to be used server-side. 0 for MsgC only, 1 for MsgC & ServerLog, 2 for ServerLog only.", 0, 2 )
+end
+
 function CustomChat.Print( str, ... )
-    local logprint = CustomChat.GetConVarInt( "debug_serverlog", 0 )
-    if SERVER and logprint > 0 then
-        ServerLog( "[Custom Chat] " .. string.format( str, ... ) .. "\n" )
-        if logprint == 2 then return end
+    if SERVER then
+        local logMethod = CustomChat.GetConVarInt( "server_log_method", 0 )
+
+        if logMethod > 0 then
+            ServerLog( "[Custom Chat] " .. string.format( str, ... ) .. "\n" )
+            if logMethod == 2 then return end
+        end
     end
+
     MsgC( Color( 0, 123, 255 ), "[Custom Chat] ", Color( 255, 255, 255 ), string.format( str, ... ), "\n" )
 end
 
