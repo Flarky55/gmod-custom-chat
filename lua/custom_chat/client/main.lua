@@ -245,7 +245,6 @@ function CustomChat:AddMessage( contents, channelId )
     end
 
     local proximityModeId = self.lastReceivedMessage and self.lastReceivedMessage.proximityMode
-    if self.lastReceivedMessage then print(self.lastReceivedMessage.proximityMode) end
 
     if proximityModeId then
         local mode = self.Proximity:GetMode( proximityModeId )
