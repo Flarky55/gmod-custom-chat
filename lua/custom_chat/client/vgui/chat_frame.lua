@@ -118,6 +118,10 @@ function PANEL:Init()
                 self:AppendAtCaret( "  " )
             end
 
+        elseif code == KEY_BACKSPACE and input.IsControlDown() then
+            self:NextProximityMode()
+            return true
+
         elseif code == KEY_ENTER and not input.IsShiftDown() then
             self:SubmitMessage()
             return true
@@ -145,6 +149,19 @@ function PANEL:Init()
         s:SetTall( lineCount * ( s._calculatedFontHeight or 20 ) * 1.3 )
     end
 
+    local proximityMode = vgui.Create( "DButton", self.entryDock )
+    proximityMode:SetWide( 64 )
+    proximityMode:Dock( LEFT )
+    proximityMode:Hide()
+
+    proximityMode.Paint = nil
+
+    proximityMode.DoClick = function() 
+        self:NextProximityMode() 
+    end
+
+    self.proximityMode = proximityMode
+    
     local emojisButton = vgui.Create( "DImageButton", self.entryDock )
     emojisButton:SetImage( "icon16/emoticon_smile.png" )
     emojisButton:SetStretchToFit( false )
@@ -158,6 +175,7 @@ function PANEL:Init()
     self:CreateChannel( "global", L"channel.global", "icon16/world.png" )
     self:CreateChannel( "team", L"channel.team", CustomChat.TEAM_CHAT_ICON )
 
+    self:SetProximityMode( "default" )
     self:SetActiveChannel( "global" )
     self:LoadThemeData()
     self:CloseChat()
@@ -231,10 +249,22 @@ function PANEL:OpenChat()
     self.isChatOpen = true
 
     if CustomChat.isUsingTeamOnly == true then
-        self:SetActiveChannel( "team" )
+        if CustomChat.GetConVarBool( "proximity_messagemode2" ) then
+            self.proximityMode:Show()
+            self:SetActiveChannel( self.lastChannelId or "global" )
+        else
+            self.proximityMode:Hide()
+            self:SetActiveChannel( "team" )
+        end
     else
         if self.lastChannelId == "team" then
             self.lastChannelId = nil
+        end
+
+        if CustomChat.GetConVarBool( "proximity_always" ) then
+            self.proximityMode:Show()
+        else
+            self.proximityMode:Hide()
         end
 
         self:SetActiveChannel( self.lastChannelId or "global" )
@@ -283,6 +313,25 @@ function PANEL:ClearEverything()
     for id, _ in pairs( self.channels ) do
         self:SetChannelNotificationCount( id, 0 )
     end
+end
+
+function PANEL:NextProximityMode()
+    local currentIndex = self.proximityMode.mode.index
+    local nextIndex = currentIndex + 1
+
+    if nextIndex > #CustomChat.Proximity.Modes then
+        nextIndex = 1
+    end
+
+    self:SetProximityMode( nextIndex )
+end
+
+function PANEL:SetProximityMode( id )
+    local mode = CustomChat.Proximity:GetMode( id )
+    if not mode then return end
+
+    self.proximityMode.mode = mode
+    self.proximityMode:SetText( L( "proximity." .. mode.id ) )
 end
 
 function PANEL:NextChannel()
@@ -469,7 +518,7 @@ function PANEL:SubmitMessage()
     end
 
     self.entry:SetText( "" )
-    self.OnSubmitMessage( text, self.lastChannelId )
+    self.OnSubmitMessage( text, self.lastChannelId, self.proximityMode:IsVisible() and self.proximityMode.mode.id )
 end
 
 function PANEL:OpenDirectMessage()
@@ -614,7 +663,7 @@ function PANEL:Paint( w, h )
     draw.RoundedBox( self.cornerRadius, 0, 0, w, h, self.backgroundColor )
 end
 
-function PANEL.OnSubmitMessage( _text, _channelId ) end
+function PANEL.OnSubmitMessage( _text, _channelId, _proximityModeId ) end
 function PANEL.OnRightClick( _data ) end
 
 vgui.Register( "CustomChat_Frame", PANEL, "DFrame" )

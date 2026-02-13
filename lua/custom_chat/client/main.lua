@@ -30,6 +30,8 @@ function CustomChat.GetLanguageText( id )
     return language.GetPhrase( "custom_chat." .. id )
 end
 
+local L = CustomChat.GetLanguageText
+
 do
     local year = 60 * 60 * 24 * 365
     local month = 60 * 60 * 24 * 30
@@ -38,8 +40,6 @@ do
     local minute = 60
 
     function CustomChat.NiceTime( time )
-        local L = CustomChat.GetLanguageText
-
         local timeUnits = {
             { value = Floor( time / year ), name = "time.years" },
             { value = Floor( time / month ) % 12, name = "time.months" },
@@ -178,10 +178,11 @@ function CustomChat:CreateFrame()
         self:OpenContextMenu( data )
     end
 
-    self.frame.OnSubmitMessage = function( text, channel )
+    self.frame.OnSubmitMessage = function( text, channel, proximityMode )
         if string.len( text ) > 0 then
             local message = CustomChat.ToJSON( {
                 channel = channel,
+                proximityMode = proximityMode,
                 text = text
             } )
 
@@ -241,6 +242,16 @@ function CustomChat:AddMessage( contents, channelId )
 
         local channel = self.frame:CreateChannel( channelId, dmSpeaker:Nick(), dmSpeaker )
         channel.isDM = true
+    end
+
+    local proximityModeId = self.lastReceivedMessage and self.lastReceivedMessage.proximityMode
+    if self.lastReceivedMessage then print(self.lastReceivedMessage.proximityMode) end
+
+    if proximityModeId then
+        local mode = self.Proximity:GetMode( proximityModeId )
+
+        table.insert( contents, 1, Color( 120, 120, 255 ) )
+        table.insert( contents, 2, "(" .. L( "proximity." .. mode.id ) .. ") " )
     end
 
     self.frame:AppendContents( contents, channelId, self.Config.timestamps )
@@ -723,3 +734,20 @@ hook.Add( "InitPostEntity", "CustomChat.PostInit", function()
         end
     end, HOOK_LOW )
 end )
+
+    hook.Add( "OnPlayerChat", "CustomChat.PreprocessPlayerChat", function( ply, text, isTeam, isDead )
+        if CustomChat.USE_TAGS then
+            -- Make sure the `lastReceivedMessage` table exists when this hook runs.
+            -- It could be nil if the message comes from the "say" console command
+            -- instead of the "customchat.say" network event.
+            CustomChat.lastReceivedMessage = CustomChat.lastReceivedMessage or {
+                speaker = ply,
+                text = text,
+                channel = "global"
+            }
+
+            local ret = CustomChat.Tags:AddMessageWithCustomTags( ply, text, isTeam, isDead )
+            -- CustomChat.lastReceivedMessage = nil
+            return ret
+        end
+    end, HOOK_LOW )

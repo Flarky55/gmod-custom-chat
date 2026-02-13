@@ -1,14 +1,19 @@
+local GetPos = FindMetaTable( "Entity" ).GetPos
+
 util.AddNetworkString( "customchat.say" )
 
 -- Gets a list of all players who can
 -- listen to messages from a "speaker".
-local function GetListeners( speaker, text, channel )
+local function GetListeners( speaker, text, channel, proximityMode )
     local teamOnly = channel == "team"
     local targets = teamOnly and team.GetPlayers( speaker:Team() ) or player.GetHumans()
+    local proximityModeTbl = proximityMode and CustomChat.Proximity:GetMode( proximityMode )
     local listeners = {}
 
     for _, ply in ipairs( targets ) do
-        if hook.Run( "PlayerCanSeePlayersChat", text, teamOnly, ply, speaker, channel ) then
+        if proximityModeTbl and GetPos( speaker ):DistToSqr( GetPos( ply ) ) > proximityModeTbl.getDistance( speaker ) ^ 2 then continue end
+        
+        if hook.Run( "PlayerCanSeePlayersChat", text, teamOnly, ply, speaker, channel, proximity ) then
             listeners[#listeners + 1] = ply
         end
     end
@@ -33,6 +38,7 @@ net.Receive( "customchat.say", function( _, speaker )
 
     local text = message.text
     local channel = message.channel
+    local proximityMode = message.proximityMode
 
     if not IsStringValid( text ) then return end
     if not IsStringValid( channel ) then return end
@@ -53,14 +59,14 @@ net.Receive( "customchat.say", function( _, speaker )
     end
 
     text = CustomChat.CleanupString( text )
-    text = hook.Run( "PlayerSay", speaker, text, teamOnly, channel )
+    text = hook.Run( "PlayerSay", speaker, text, teamOnly, channel, proximityMode )
 
     if not IsStringValid( text ) then return end
 
     hook.Run( "PostPlayerSay", speaker, text, teamOnly, channel, dmTarget )
 
     if CustomChat.GetConVarBool( "print_chats" ) then
-        CustomChat.Print( "%s [%s] {%s}: %s", speaker:Nick(), speaker:SteamID(), channel, text )
+        CustomChat.Print( "%s [%s] {%s} {%s}: %s", speaker:Nick(), speaker:SteamID(), channel, proximityMode or "worldwide", text )
     end
 
     if dmTarget then
@@ -96,11 +102,12 @@ net.Receive( "customchat.say", function( _, speaker )
         teamonly = teamOnly and 1 or 0,
     } )
 
-    local targets = GetListeners( speaker, text, channel )
+    local targets = GetListeners( speaker, text, channel, proximityMode )
     if #targets == 0 then return end
 
     message = CustomChat.ToJSON( {
         channel = channel,
+        proximityMode = proximityMode,
         text = text
     } )
 

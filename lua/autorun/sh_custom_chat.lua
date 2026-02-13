@@ -84,6 +84,15 @@ if CLIENT then
 
     CreateClientConVar( "custom_chat_show_steamid_on_join_leave", "0", true, false,
         "Should the SteamID be visible when showing join/leave messages?", 0, 1 )
+
+    CreateClientConVar( "custom_chat_proximity_default_distance", "300", true, true,
+        "Default distance of default proximity chat mode." )
+
+    CreateClientConVar( "custom_chat_proximity_messagemode2", "1", true, false,
+        "messagemode2 bind opens chat with proximity mode." )
+
+    CreateClientConVar( "custom_chat_proximity_always", "0", true, false,
+        "Always open chat with proximity mode." )
 end
 
 if SERVER then
@@ -221,6 +230,8 @@ if SERVER then
     -- Shared files
     include( "custom_chat/override_istyping.lua" )
     AddCSLuaFile( "custom_chat/override_istyping.lua" )
+    include( "custom_chat/proximity.lua" )
+    AddCSLuaFile( "custom_chat/proximity.lua" )
 
     -- Server files
     include( "custom_chat/server/main.lua" )
@@ -254,6 +265,7 @@ if CLIENT then
 
     -- Shared files
     include( "custom_chat/override_istyping.lua" )
+    include( "custom_chat/proximity.lua" )
 
     -- Client files
     include( "custom_chat/client/config.lua" )
