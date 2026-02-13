@@ -728,8 +728,10 @@ hook.Add( "InitPostEntity", "CustomChat.PostInit", function()
             }
 
             local ret = CustomChat.Tags:AddMessageWithCustomTags( ply, text, isTeam, isDead )
-            CustomChat.lastReceivedMessage = nil
-            return ret
+            if ret ~= nil then
+                CustomChat.lastReceivedMessage = nil
+                return ret
+            end
         end
     end, HOOK_LOW )
 end )
