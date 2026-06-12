@@ -24,4 +24,8 @@ end
 
 Proximity:CreateMode( "default",    GetPlayerDistance )
 Proximity:CreateMode( "yell",       function( ply ) return math.min( GetPlayerDistance( ply ) * 2, 1500 ) end )
-Proximity:CreateMode( "whisper",    function()      return 50 end )
+Proximity:CreateMode("whisper", function() return 50 end)
+
+if SERVER then
+	hook.Add( "PlayerCanSeePlayersChat", "" )
+end

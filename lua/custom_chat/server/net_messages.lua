@@ -6,7 +6,7 @@ util.AddNetworkString( "customchat.say" )
 -- listen to messages from a "speaker".
 local function GetListeners( speaker, text, channel, proximityMode )
     local teamOnly = channel == "team"
-    local targets = teamOnly and team.GetPlayers( speaker:Team() ) or player.GetHumans()
+    local targets = teamOnly and team.GetPlayers( speaker:Team() ) or player.GetAll()
     local proximityModeTbl = proximityMode and CustomChat.Proximity:GetMode( proximityMode )
     local listeners = {}
 
