@@ -151,17 +151,18 @@ function PANEL:Init()
 
     local proximityMode = vgui.Create( "DButton", self.entryDock )
     proximityMode:SetWide( 64 )
+    proximityMode:SetTextColor( color_white )
     proximityMode:Dock( LEFT )
     proximityMode:Hide()
 
     proximityMode.Paint = nil
 
-    proximityMode.DoClick = function() 
-        self:NextProximityMode() 
+    proximityMode.DoClick = function()
+        self:NextProximityMode()
     end
 
     self.proximityMode = proximityMode
-    
+
     local emojisButton = vgui.Create( "DImageButton", self.entryDock )
     emojisButton:SetImage( "icon16/emoticon_smile.png" )
     emojisButton:SetStretchToFit( false )
