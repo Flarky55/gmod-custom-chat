@@ -98,6 +98,10 @@ local whitelist = {
     simple [[tenor.com]],
     pattern [[[%w-_]-%.tenor%.com/.+]],
 
+    -- Klipy
+    simple [[klipy.com]],
+    pattern [[([%w-_]+)%.klipy%.com/(.+)]],
+
     -- Youtube
     simple [[youtu.be]],
     pattern [[([%w-_]+)%.youtube%.com/(.+)]],
@@ -137,6 +141,7 @@ local whitelist = {
 
     -- Catbox
     simple [[files.catbox.moe]],
+    simple [[litter.catbox.moe]],
 }
 
 function CustomChat.IsWhitelisted( url )

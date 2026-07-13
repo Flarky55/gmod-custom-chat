@@ -251,6 +251,7 @@ if SERVER then
     AddCSLuaFile( "custom_chat/client/tags.lua" )
     AddCSLuaFile( "custom_chat/client/theme.lua" )
     AddCSLuaFile( "custom_chat/client/whitelist.lua" )
+    AddCSLuaFile( "custom_chat/client/multipart.lua" )
 
     AddCSLuaFile( "custom_chat/client/vgui/chat_frame.lua" )
     AddCSLuaFile( "custom_chat/client/vgui/chat_history.lua" )
@@ -279,6 +280,7 @@ if CLIENT then
     include( "custom_chat/client/tags.lua" )
     include( "custom_chat/client/theme.lua" )
     include( "custom_chat/client/whitelist.lua" )
+    include( "custom_chat/client/multipart.lua" )
 
     include( "custom_chat/client/vgui/chat_frame.lua" )
     include( "custom_chat/client/vgui/chat_history.lua" )
