@@ -1,10 +1,19 @@
 util.AddNetworkString( "customchat.player_spawned" )
+util.AddNetworkString( "customchat.player_connect" )
 
 local connectingSteamIDs = {}
 gameevent.Listen( "player_connect" )
 hook.Add( "player_connect", "CustomChat.TrackConnectingPlayers", function( data )
     local steamId = data.networkid
     connectingSteamIDs[steamId] = SysTime()
+
+    local name = player_manager.GetStoredPersistentNick( steamId, data.name )
+
+    net.Start( "customchat.player_connect" )
+    net.WriteString( steamId )
+    net.WriteString( name )
+    net.WriteBool( data.bot )
+    net.Broadcast()
 end )
 
 gameevent.Listen( "player_disconnect" )

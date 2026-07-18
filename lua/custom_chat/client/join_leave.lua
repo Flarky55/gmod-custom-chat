@@ -15,48 +15,7 @@ local JoinLeave = CustomChat.JoinLeave or {
 
 CustomChat.JoinLeave = JoinLeave
 
-gameevent.Listen( "player_connect_client" )
 gameevent.Listen( "player_disconnect" )
-
-hook.Add( "player_connect_client", "CustomChat.ShowConnectMessages", function( data )
-    if not JoinLeave.showConnect then return end
-
-    local c = JoinLeave.joinColor
-    local name = data.name
-    local steamId = data.networkid
-    local isBot = data.bot == 1
-
-    if isBot and not JoinLeave.botConnectDisconnect then return end
-
-    local hideMessage = hook.Run( "CustomChatHideJoinMessage", data )
-    if hideMessage == true then return end
-
-    -- Only use a player block if Custom Chat is enabled
-    if CustomChat.IsEnabled() then
-        name = {
-            blockType = "player",
-            blockValue = {
-                name = data.name,
-                id = steamId,
-                id64 = util.SteamIDTo64( steamId ),
-                isBot = isBot
-            }
-        }
-    end
-
-    local parts = {
-        Color( 255, 255, 255 ), JoinLeave.joinPrefix,
-        Color( c[1], c[2], c[3] ), name, " ",
-        Color( 255, 255, 255 ), JoinLeave.joinSuffix
-    }
-
-    if CustomChat.GetConVarInt( "show_steamid_on_join_leave", 0 ) > 0 then
-        table.insert( parts, 5, Color( 150, 150, 150 ) )
-        table.insert( parts, 5, " <" .. steamId .. ">" )
-    end
-
-    chat.AddText( unpack( parts ) )
-end, HOOK_LOW )
 
 hook.Add( "player_disconnect", "CustomChat.ShowDisconnectMessages", function( data )
     if not JoinLeave.showDisconnect then return end
@@ -171,6 +130,46 @@ hook.Add( "NetworkEntityCreated", "CustomChat.HandlePlayerInitialSpawn", functio
 
     CustomChat.PlayerInitialSpawnWaiting[steamId] = nil
     OnPlayerActivated( ent, steamId, data.name, data.color, data.absenceLength, data.timeToSpawn )
+end )
+
+net.Receive( "customchat.player_connect", function()
+    if not JoinLeave.showConnect then return end
+
+    local c = JoinLeave.joinColor
+    local steamId = net.ReadString()
+    local name = net.ReadString()
+    local isBot = net.ReadBool()
+
+    if isBot and not JoinLeave.botConnectDisconnect then return end
+
+    local hideMessage = hook.Run( "CustomChatHideJoinMessage", data )
+    if hideMessage == true then return end
+
+    -- Only use a player block if Custom Chat is enabled
+    if CustomChat.IsEnabled() then
+        name = {
+            blockType = "player",
+            blockValue = {
+                name = data.name,
+                id = steamId,
+                id64 = util.SteamIDTo64( steamId ),
+                isBot = isBot
+            }
+        }
+    end
+
+    local parts = {
+        Color( 255, 255, 255 ), JoinLeave.joinPrefix,
+        Color( c[1], c[2], c[3] ), name, " ",
+        Color( 255, 255, 255 ), JoinLeave.joinSuffix
+    }
+
+    if CustomChat.GetConVarInt( "show_steamid_on_join_leave", 0 ) > 0 then
+        table.insert( parts, 5, Color( 150, 150, 150 ) )
+        table.insert( parts, 5, " <" .. steamId .. ">" )
+    end
+
+    chat.AddText( unpack( parts ) )
 end )
 
 net.Receive( "customchat.player_spawned", function()
